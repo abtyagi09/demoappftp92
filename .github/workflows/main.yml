@@ -1,0 +1,64 @@
+﻿name: Build and Deploy via FTP
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: windows-latest
+
+    env:
+      AZURE_WEBAPP_NAME: ${{ secrets.AZURE_WEBAPP_NAME }}
+      AZURE_RG: ${{ secrets.AZURE_RG }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Restore NuGet packages
+        run: nuget restore ftpappdemo82/ftpappdemo82.csproj
+
+      - name: Build solution
+        run: msbuild ftpappdemo82/ftpappdemo82.csproj /p:Configuration=Release
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get FTP credentials
+        id: ftpcreds
+        shell: pwsh
+        run: |
+          $creds = az webapp deployment list-publishing-profiles `
+            --name $Env:AZURE_WEBAPP_NAME `
+            --resource-group $Env:AZURE_RG `
+            --query "[?contains(publishMethod, 'FTP')].[publishUrl,userName,userPWD]" `
+            --output tsv
+
+          $lines = $creds -split "`n"
+          $ftpUrl, $ftpUser, $ftpPwd = $lines[0] -split "`t"
+
+          echo "ftp_url=$ftpUrl" | Out-File -FilePath $Env:GITHUB_OUTPUT -Append
+          echo "ftp_user=$ftpUser" | Out-File -FilePath $Env:GITHUB_OUTPUT -Append
+          echo "ftp_pwd=$ftpPwd" | Out-File -FilePath $Env:GITHUB_OUTPUT -Append
+
+      - name: Upload via FTP using curl
+        shell: bash
+        run: |
+          shopt -s globstar
+          for file in ftpappdemo82/bin/Release/**/*; do
+            if [ -f "$file" ]; then
+              curl --ftp-ssl --ssl-reqd -T "$file" \
+                -u "${{ steps.ftpcreds.outputs.ftp_user }}:${{ steps.ftpcreds.outputs.ftp_pwd }}" \
+                "${{ steps.ftpcreds.outputs.ftp_url }}/$(realpath --relative-to=ftpappdemo82/bin/Release "$file" | tr '\\' '/')"
+            fi
+          done
