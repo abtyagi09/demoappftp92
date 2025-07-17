@@ -26,7 +26,6 @@ jobs:
       # Restore dependencies and build must be done before FTP deploy, as FTP does not support build automation
       - name: Restore NuGet packages
         run: nuget restore ftpappdemo82/ftpappdemo82.csproj  -SolutionDirectory .
-        run: nuget restore ftpappdemo82/ftpappdemo82.csproj
 
       - name: Build solution
         run: msbuild ftpappdemo82/ftpappdemo82.csproj /p:Configuration=Release
