@@ -1,4 +1,4 @@
-﻿name: Build and Deploy via FTP
+name: Build and Deploy via FTP
 
 on:
   push:
@@ -23,11 +23,20 @@ jobs:
       - name: Setup NuGet
         uses: NuGet/setup-nuget@v2
 
+      # Restore dependencies and build must be done before FTP deploy, as FTP does not support build automation
       - name: Restore NuGet packages
         run: nuget restore ftpappdemo82/ftpappdemo82.csproj  -SolutionDirectory .
+        run: nuget restore ftpappdemo82/ftpappdemo82.csproj
 
       - name: Build solution
         run: msbuild ftpappdemo82/ftpappdemo82.csproj /p:Configuration=Release
+
+      - name: Ensure web.config exists
+        run: |
+          if [ ! -f ftpappdemo82/bin/Release/web.config ]; then
+            echo "web.config is missing in the build output. Please ensure it is present before deploying via FTP." && exit 1
+          fi
+        shell: bash
 
       - name: Azure Login
         uses: azure/login@v1
@@ -62,3 +71,5 @@ jobs:
                 "${{ steps.ftpcreds.outputs.ftp_url }}/$(realpath --relative-to=ftpappdemo82/bin/Release "$file" | tr '\\' '/')"
             fi
           done
+
+# Note: FTP/S deployment does NOT support build automation. All dependencies must be restored and the app must be built before upload. Ensure web.config and all required files are present in the output directory before deployment.
