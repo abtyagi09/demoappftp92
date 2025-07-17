@@ -4,8 +4,15 @@
 
     <main>
         <section class="row" aria-labelledby="aspnetTitle">
-            <h1 id="aspnetTitle">ASP.NET</h1>
-            <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS, and JavaScript.</p>
+            <h1 id="aspnetTitle" style="color:#2c3e50; font-size:2.5em; font-weight:bold;">Welcome to Your FTP Demo WebApp!</h1>
+            <p class="lead" style="font-size:1.3em; color:#34495e;">This is a sample .NET Framework 4.7.2 web application, ready for Azure and FTP deployment.</p>
+            <div style="background:#eaf6fb; border-left:5px solid #3498db; padding:16px; margin:20px 0; border-radius:6px;">
+                <ul style="margin-bottom:0;">
+                    <li><b>Framework:</b> .NET Framework 4.7.2</li>
+                    <li><b>Deployment:</b> Supports Azure Web App and FTP workflows</li>
+                    <li><b>Bundling:</b> CSS and JS bundling enabled (see <code>Bundle.config</code>)</li>
+                </ul>
+            </div>
             <p><a href="http://www.asp.net" class="btn btn-primary btn-md">Learn more &raquo;</a></p>
         </section>
 
