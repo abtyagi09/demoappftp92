@@ -43,11 +43,13 @@ namespace ftpappdemo82.Tests
                 // Assert - if we get here without exceptions on a compatible platform
                 Assert.True(bundles.Count >= 3, "Should create at least 3 bundles");
             }
-            catch (TypeLoadException)
+            catch (TypeLoadException ex)
             {
                 // Known issue with ScriptResourceMapping on Mono/Linux
-                // This test passes conceptually as the method structure is correct
-                Assert.True(true);
+                // Verify this is the expected platform-specific limitation
+                var isExpectedException = ex.Message.Contains("ScriptResourceMapping");
+                Assert.True(isExpectedException, 
+                    "TypeLoadException should be related to ScriptResourceMapping platform limitation");
             }
         }
 
